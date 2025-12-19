@@ -1,4 +1,12 @@
-export default async function handler(req, res) {
+import express from "express";
+import fetch from "node-fetch";
+import cors from "cors";
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+
+app.get("/api/restaurants", async (req, res) => {
   const { lat, lng, cuisine } = req.query;
 
   if (!lat || !lng || !cuisine) {
@@ -8,21 +16,8 @@ export default async function handler(req, res) {
   }
 
   try {
-    const body = {
-      includedTypes: ["restaurant"],
-      locationRestriction: {
-        circle: {
-          center: {
-            latitude: Number(lat),
-            longitude: Number(lng),
-          },
-          radius: 10000, // ✅ strict 10 km
-        },
-      },
-    };
-
     const response = await fetch(
-      "https://places.googleapis.com/v1/places:searchNearby",
+      "https://places.googleapis.com/v1/places:searchText",
       {
         method: "POST",
         headers: {
@@ -31,21 +26,24 @@ export default async function handler(req, res) {
           "X-Goog-FieldMask":
             "places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.websiteUri",
         },
-        body: JSON.stringify(body),
+        body: JSON.stringify({
+          textQuery: `${cuisine} restaurant`,
+          locationBias: {
+            circle: {
+              center: {
+                latitude: Number(lat),
+                longitude: Number(lng),
+              },
+              radius: 10000, // ✅ 10 km
+            },
+          },
+        }),
       }
     );
 
     const data = await response.json();
 
-    const cuisineLower = cuisine.toLowerCase();
-
     const places = (data.places || [])
-      // 🔍 filter cuisine manually
-      .filter((p) =>
-        p.displayName?.text?.toLowerCase().includes(cuisineLower) ||
-        p.formattedAddress?.toLowerCase().includes(cuisineLower)
-      )
-      // 🧹 normalize output
       .map((p) => ({
         name: p.displayName?.text || "Unknown",
         address: p.formattedAddress || "Address not available",
@@ -53,7 +51,7 @@ export default async function handler(req, res) {
         reviews: p.userRatingCount ?? 0,
         website: p.websiteUri || null,
       }))
-      // ⭐ sort best → worst
+      // ✅ sort by rating, then reviews
       .sort((a, b) => {
         if (b.rating !== a.rating) return b.rating - a.rating;
         return b.reviews - a.reviews;
@@ -63,7 +61,10 @@ export default async function handler(req, res) {
   } catch (err) {
     console.error(err);
     res.status(500).json({
-      error: "Failed to fetch restaurants",
+      error: "Failed to fetch restaurants from Google Places",
     });
   }
-}
+});
+
+// ✅ THIS is what Vercel needs
+export default app;
