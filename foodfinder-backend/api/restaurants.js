@@ -61,7 +61,7 @@ app.get("/api/restaurants", async (req, res) => {
   } catch (err) {
     console.error(err);
     res.status(500).json({
-      error: "Failed to fetch restaurants from Google Places",
+      error: "Failed to fetch restaurants name from Google Places",
     });
   }
 });
