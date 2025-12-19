@@ -36,7 +36,16 @@ export default async function handler(req, res) {
     );
 
     const data = await response.json();
-    res.status(200).json(data.places || []);
+
+    const places = (data.places || []).map((p) => ({
+      name: p.displayName?.text || "Unknown",
+      address: p.formattedAddress || "Address not available",
+      rating: p.rating ?? null,
+      reviews: p.userRatingCount ?? 0,
+      website: p.websiteUri || null,
+    }));
+
+    res.status(200).json(places);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: "Failed to fetch restaurants" });
