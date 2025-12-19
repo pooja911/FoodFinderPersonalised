@@ -9,20 +9,20 @@ export default async function handler(req, res) {
 
   try {
     const body = {
-      textQuery: `${cuisine} restaurant`,
+      includedTypes: ["restaurant"],
       locationRestriction: {
         circle: {
           center: {
             latitude: Number(lat),
             longitude: Number(lng),
           },
-          radius: 10000, // ✅ STRICT 10 KM
+          radius: 10000, // ✅ strict 10 km
         },
       },
     };
 
     const response = await fetch(
-      "https://places.googleapis.com/v1/places:searchText",
+      "https://places.googleapis.com/v1/places:searchNearby",
       {
         method: "POST",
         headers: {
@@ -37,7 +37,15 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
+    const cuisineLower = cuisine.toLowerCase();
+
     const places = (data.places || [])
+      // 🔍 filter cuisine manually
+      .filter((p) =>
+        p.displayName?.text?.toLowerCase().includes(cuisineLower) ||
+        p.formattedAddress?.toLowerCase().includes(cuisineLower)
+      )
+      // 🧹 normalize output
       .map((p) => ({
         name: p.displayName?.text || "Unknown",
         address: p.formattedAddress || "Address not available",
@@ -45,11 +53,9 @@ export default async function handler(req, res) {
         reviews: p.userRatingCount ?? 0,
         website: p.websiteUri || null,
       }))
-      // ✅ SORT: rating first, then reviews
+      // ⭐ sort best → worst
       .sort((a, b) => {
-        if (b.rating !== a.rating) {
-          return b.rating - a.rating;
-        }
+        if (b.rating !== a.rating) return b.rating - a.rating;
         return b.reviews - a.reviews;
       });
 
