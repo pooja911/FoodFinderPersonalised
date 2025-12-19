@@ -10,13 +10,13 @@ export default async function handler(req, res) {
   try {
     const body = {
       textQuery: `${cuisine} restaurant`,
-      locationBias: {
+      locationRestriction: {
         circle: {
           center: {
             latitude: Number(lat),
             longitude: Number(lng),
           },
-          radius: 10000,
+          radius: 10000, // ✅ STRICT 10 KM
         },
       },
     };
@@ -37,17 +37,27 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    const places = (data.places || []).map((p) => ({
-      name: p.displayName?.text || "Unknown",
-      address: p.formattedAddress || "Address not available",
-      rating: p.rating ?? null,
-      reviews: p.userRatingCount ?? 0,
-      website: p.websiteUri || null,
-    }));
+    const places = (data.places || [])
+      .map((p) => ({
+        name: p.displayName?.text || "Unknown",
+        address: p.formattedAddress || "Address not available",
+        rating: p.rating ?? 0,
+        reviews: p.userRatingCount ?? 0,
+        website: p.websiteUri || null,
+      }))
+      // ✅ SORT: rating first, then reviews
+      .sort((a, b) => {
+        if (b.rating !== a.rating) {
+          return b.rating - a.rating;
+        }
+        return b.reviews - a.reviews;
+      });
 
     res.status(200).json(places);
   } catch (err) {
     console.error(err);
-    res.status(500).json({ error: "Failed to fetch restaurants" });
+    res.status(500).json({
+      error: "Failed to fetch restaurants",
+    });
   }
 }
