@@ -66,5 +66,4 @@ app.get("/api/restaurants", async (req, res) => {
   }
 });
 
-// ✅ THIS is what Vercel needs
 export default app;

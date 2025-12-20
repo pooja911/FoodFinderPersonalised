@@ -1,0 +1,36 @@
+body {
+  font-family: Arial, sans-serif;
+  background: #f8f8f8;
+}
+
+.container {
+  max-width: 700px;
+  margin: auto;
+  padding: 20px;
+}
+
+select {
+  padding: 8px;
+  margin: 15px 0;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
+  background: white;
+  margin-bottom: 15px;
+  padding: 15px;
+  border-radius: 8px;
+}
+
+a {
+  color: blue;
+  text-decoration: none;
+}
+
+.error {
+  color: red;
+}
