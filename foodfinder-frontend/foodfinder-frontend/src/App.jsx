@@ -227,6 +227,9 @@ export default function App() {
           </div>
         ))}
       </div>
+      <footer className="footer">
+        © {new Date().getFullYear()} Pooja Garg. All rights reserved.
+      </footer>
     </div>
   );
 }
