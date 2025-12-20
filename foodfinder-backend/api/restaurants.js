@@ -24,7 +24,7 @@ app.get("/api/restaurants", async (req, res) => {
           "Content-Type": "application/json",
           "X-Goog-Api-Key": process.env.GOOGLE_API_KEY,
           "X-Goog-FieldMask":
-            "places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.websiteUri",
+            "places.displayName,places.formattedAddress,places.rating,places.userRatingCount,places.websiteUri,places.location",
         },
         body: JSON.stringify({
           textQuery: `${cuisine} restaurant`,
@@ -34,7 +34,7 @@ app.get("/api/restaurants", async (req, res) => {
                 latitude: Number(lat),
                 longitude: Number(lng),
               },
-              radius: 10000, // ✅ 10 km
+              radius: 10000, 
             },
           },
         }),
@@ -50,8 +50,10 @@ app.get("/api/restaurants", async (req, res) => {
         rating: p.rating ?? 0,
         reviews: p.userRatingCount ?? 0,
         website: p.websiteUri || null,
+        lat : p.location?.latitude,
+        lng : p.location?.longitude
       }))
-      // ✅ sort by rating, then reviews
+      //  sort by rating, then reviews
       .sort((a, b) => {
         if (b.rating !== a.rating) return b.rating - a.rating;
         return b.reviews - a.reviews;
