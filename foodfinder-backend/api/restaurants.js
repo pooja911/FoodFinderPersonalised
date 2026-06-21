@@ -53,7 +53,7 @@ app.get("/api/restaurants", async (req, res) => {
         lat : p.location?.latitude,
         lng : p.location?.longitude
       }))
-      //  sort by rating, then reviews
+      //  sort by rating, then reviews##
       .sort((a, b) => {
         if (b.rating !== a.rating) return b.rating - a.rating;
         return b.reviews - a.reviews;
